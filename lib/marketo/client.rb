@@ -8,6 +8,7 @@ module Marketo
     client = Savon::Client.new do
       wsdl.endpoint     = endpoint
       wsdl.document     = "http://app.marketo.com/soap/mktows/#{api_version}?WSDL"
+      http.auth.ssl.verify_mode = :none
       http.read_timeout = 300
       http.open_timeout = 300
       http.headers      = { "Connection" => "Keep-Alive",
