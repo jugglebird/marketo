@@ -18,8 +18,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   
   gem.add_dependency('savon', '~> 1.2.0')
-  # gem.add_dependency('savon_model')
-  # gem.add_development_dependency('vcr')
   gem.add_development_dependency('mocha')
   gem.add_development_dependency('pry')
   gem.add_development_dependency('rake')

@@ -2,15 +2,16 @@ require File.expand_path('authentication_header', File.dirname(__FILE__))
 
 module Marketo
     
-  def self.new_client(access_key, secret_key, api_version='2.0', api_subdomain='na-q')
+  def self.new_client(access_key, secret_key, api_version = '2.0', endpoint = "https://na-q.marketo.com/soap/mktows/2_0")
 
     api_version = api_version.sub(".", "_")
     client = Savon::Client.new do
-      wsdl.endpoint     = "https://#{api_subdomain}.marketo.com/soap/mktows/#{api_version}"
+      wsdl.endpoint     = endpoint
       wsdl.document     = "http://app.marketo.com/soap/mktows/#{api_version}?WSDL"
       http.read_timeout = 300
       http.open_timeout = 300
-      http.headers      = {"Connection" => "Keep-Alive"}
+      http.headers      = { "Connection" => "Keep-Alive",
+                            "Pragma" => "no-cache" }
     end
 
     Client.new(client, Marketo::AuthenticationHeader.new(access_key, secret_key))
@@ -83,7 +84,7 @@ module Marketo
         end
         return leads
       rescue => e
-        @logger.log(e) if @logger
+        @logger.warn(e) if @logger
         raise e
       end
     end
@@ -101,7 +102,7 @@ module Marketo
         end
         return leads
       rescue => e
-        @logger.log(e) if @logger
+        @logger.warn(e) if @logger
         raise e
       end
     end
@@ -145,7 +146,7 @@ module Marketo
                      :attribute => attributes}}})
         return LeadRecord.from_hash(response[:success_sync_lead][:result][:lead_record])
       rescue  => e
-        @logger.log(e) if @logger
+        @logger.warn(e) if @logger
         return nil
       end
     end
@@ -172,7 +173,7 @@ module Marketo
           
         return response
       rescue  => e
-        @logger.log(e) if @logger
+        @logger.warn(e) if @logger
         return @client.http
         #return nil
       end
@@ -206,7 +207,7 @@ module Marketo
         })
         return response
       rescue  => e
-        @logger.log(e) if @logger
+        @logger.warn(e) if @logger
         return nil
       end
     end
@@ -225,7 +226,7 @@ module Marketo
         end
         return leads
       rescue  => e
-        @logger.log(e) if @logger
+        @logger.warn(e) if @logger
         # raise e
         return nil
       end
