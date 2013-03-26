@@ -63,13 +63,18 @@ module Marketo
 
     public
 
-    def get_lead_by_idnum(idnum)
-      get_lead(LeadKey.new(LeadKeyType::IDNUM, idnum))
+    def get_lead_by(name, id=nil)
+      #name can be email, cookie, idnum... 
+      klass = LeadKeyType.const_get(name.to_s.upcase)
+      get_lead(LeadKey.new(klass, id))
     end
 
+    def get_lead_by_idnum(idnum)
+      get_lead_by(:idnum, idnum)
+    end
 
     def get_lead_by_email(email)
-      get_lead(LeadKey.new(LeadKeyType::EMAIL, email))
+      get_lead_by(:email, email)
     end
 
     def get_leads(options = {})
@@ -122,14 +127,18 @@ module Marketo
     # * mobile - mobile/cell phone number
     #
     # returns the LeadRecord instance on success otherwise nil
-    def sync_lead(email, first, last, company, mobile)
+    def sync_lead(email, first, last, company, mobile, cookie=nil)
       lead_record = LeadRecord.new(email)
       lead_record.set_attribute('FirstName', first)
       lead_record.set_attribute('LastName', last)
       lead_record.set_attribute('Email', email)
       lead_record.set_attribute('Company', company)
       lead_record.set_attribute('MobilePhone', mobile)
-      sync_lead_record(lead_record)
+      if cookie
+        sync_lead_record_on_cookie(lead_record, cookie)
+      else
+        sync_lead_record(lead_record)
+      end
     end
 
     def sync_lead_record(lead_record)
@@ -145,6 +154,29 @@ module Marketo
                 {:email               => lead_record.email,
                  :lead_attribute_list => {
                      :attribute => attributes}}})
+        return LeadRecord.from_hash(response[:success_sync_lead][:result][:lead_record])
+      rescue  => e
+        @logger.warn(e) if @logger
+        return nil
+      end
+    end
+
+    def sync_lead_record_on_cookie(lead_record, cookie=nil)
+      return sync_lead_record(lead_record) if cookie.nil?
+      begin
+        attributes = []
+        lead_record.each_attribute_pair do |name, value|
+          attributes << {:attr_name => name, :attr_type => 'string', :attr_value => value}
+        end
+        # attributes << {:attr_name => "MarketoCookie", :attr_type => 'string', :attr_value => cookie}
+
+        response = send_request("ns1:paramsSyncLead", {
+            :marketo_cookie => cookie,
+            :return_lead => true,
+            :lead_record =>
+                {:email               => lead_record.email,
+                 :lead_attribute_list => {:attribute => attributes}
+                }})
         return LeadRecord.from_hash(response[:success_sync_lead][:result][:lead_record])
       rescue  => e
         @logger.warn(e) if @logger
