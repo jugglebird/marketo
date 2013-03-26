@@ -27,13 +27,13 @@ Or install it yourself as:
 ## Usage
 
 Create anew Marketo Client passing your access_key and secret_key from your marketo.yml file.
-client = Marketo::Client.new_marketo_client(access_key, secret_key)
+client = Marketo.new_client(access_key, secret_key)
 
-To get a user by id use the client created above. Call get_lead_by_id passing an IDNUM. This will return a lead record.
-client.get_lead_by_id(IDNUM)
+To get a user
 
-To get a user by email address use the client created above. Call get_lead_by_email passing an EMAIL_ADDR. This will return a lead record.
-client.get_lead_by_email(EMAIL_ADDR)
+    client.get_lead_by(:id, "123456")
+    client.get_lead_by(:email, "example@email.com")
+    client.get_lead_by(:cookie, cookies["_mkto_trk"])
 
 To sync a lead with Marketo. Use the client created above. Call sync_lead passing: email_address, the Marketo Cookie, and a hash of attributes.
 The Marketo cookie: request.cookies["_mkto_trk"]
